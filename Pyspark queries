@@ -45,3 +45,6 @@ df.withColumn(
     "running_total_order_value",
     sum("order_value").over(window_spec)
 ).show()
+
+#To Create an Output CSV file 
+df.write.mode("overwrite").option("header","true").csv("Output/food_ordering_behavior_dataset.csv")
