@@ -1,0 +1,47 @@
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, max, avg, sum
+from pyspark.sql.window import Window
+
+# Create Spark Session
+spark = SparkSession.builder.appName("FoodOrderAnalysis").getOrCreate()
+
+# Load Data
+df = spark.read.csv(
+    "/content/food_ordering_behavior_dataset.csv",
+    header=True,
+    inferSchema=True
+)
+
+# Show Data
+df.show()
+
+# Filter high value orders
+df.filter(col("order_value") > 400).show()
+
+# Drop null values in age
+df.dropna(subset=["age"]).show()
+
+# Aggregation: Max order & avg delivery fee per user
+df.groupBy("user_id").agg(
+    max("order_value").alias("max_order_value"),
+    avg("delivery_fee").alias("avg_delivery_fee")
+).show()
+
+# Average rating per user
+df.groupBy("user_id").agg(
+    avg("rating_given").alias("avg_rating")
+).show()
+
+# Unique cities
+df.select("city").distinct().show()
+
+# Sort by order value
+df.orderBy(col("order_value").desc()).show()
+
+# Window Function: Running total per day_type
+window_spec = Window.partitionBy("day_type").orderBy("user_id")
+
+df.withColumn(
+    "running_total_order_value",
+    sum("order_value").over(window_spec)
+).show()
